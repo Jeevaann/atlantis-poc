@@ -158,7 +158,7 @@ resource "aws_security_group_rule" "external_port" {
   # security_group_id        = 
   to_port                  = 80
   type                     = "ingress"
-  # source_security_group_id = var.external_lb_security_group_id
+  source_security_group_id = aws_security_group.security_group.id
 }
 # egress all
 resource "aws_security_group_rule" "egress_all" {
