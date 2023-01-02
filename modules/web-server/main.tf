@@ -43,7 +43,7 @@ data "aws_ami" "ec2" {
     name   = "virtualization-type"
     values = ["hvm"]
   }
-  owners = ["099720109477"]
+  owners = ["455015786856"]
 }
 ####################################################################
 ##                             IAM                                ##                      
@@ -211,20 +211,20 @@ variable "instance_type" {
   description = "type of instance"
 }
 
-variable "vpc_id" {
-  type        = string
-  description = "ID of the VPC"
-}
+# variable "vpc_id" {
+#   type        = string
+#   description = "ID of the VPC"
+# }
 
-variable "private_subnet_ids" {
-  type        = list(string)
-  description = "ID of the private subnet"
-}
+# variable "private_subnet_ids" {
+#   type        = list(string)
+#   description = "ID of the private subnet"
+# }
 
-variable "public_subnet_ids" {
-  type        = list(string)
-  description = "ID of the subnet subnet"
-}
+# variable "public_subnet_ids" {
+#   type        = list(string)
+#   description = "ID of the subnet subnet"
+# }
 
 variable "max" {
   default     = 6
@@ -257,9 +257,9 @@ variable "kms_arn" {
 }
 
 
-variable "available_zones" {
-  type = list(string)
-}
+# variable "available_zones" {
+#   type = list(string)
+# }
 
 variable "acm_wildcard_arn" {
   type        = string
@@ -313,15 +313,15 @@ variable "external_lb_name" {
   default     = "medium-lb"
 }
 
-variable "external_lb_zone_id" {
-  type        = string
-  description = "Zone ID of external load balancer"
-}
+# variable "external_lb_zone_id" {
+#   type        = string
+#   description = "Zone ID of external load balancer"
+# }
 
-variable "external_lb_security_group_id" {
-  type        = string
-  description = "Security group of external load balancer"
-}
+# variable "external_lb_security_group_id" {
+#   type        = string
+#   description = "Security group of external load balancer"
+# }
 
 ####################################################################
 ##                          Output                                ##                                        
