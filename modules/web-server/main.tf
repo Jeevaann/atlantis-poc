@@ -70,7 +70,7 @@ resource "aws_autoscaling_group" "dev" {
   # EC2 instead of ELB, now load balancer only serves when ec2 is healthy
   force_delete         = true
   launch_configuration = aws_launch_configuration.dev.name
-  vpc_zone_identifier  = var.private_subnet_ids
+  vpc_zone_identifier  = [aws_subnet.main_subnet.id]
   target_group_arns    = [aws_lb_target_group.web_server.arn]
   lifecycle {
     create_before_destroy = true
@@ -131,6 +131,11 @@ resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
 }
 
+resource "aws_subnet" "main_subnet" {
+  vpc_id     = aws_vpc.main.id
+  cidr_block = "10.0.1.0/24"
+}
+
 
 resource "aws_security_group" "security_group" {
   name   = "${var.environment}-${var.service}-instance-sg"
@@ -153,7 +158,7 @@ resource "aws_security_group_rule" "external_port" {
   # security_group_id        = 
   to_port                  = 80
   type                     = "ingress"
-  source_security_group_id = var.external_lb_security_group_id
+  # source_security_group_id = var.external_lb_security_group_id
 }
 # egress all
 resource "aws_security_group_rule" "egress_all" {
