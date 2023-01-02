@@ -1,28 +1,28 @@
-##########################
-# Modules
-# Data sources
-# EC2
-# IAM
-# Autoscaling Group
-# Launch Configuration 
-# Listener Rule
-# Security Group
-# Security Group Rules
-# Target group
-# Variables
-# Outputs 
-##########################
+# ##########################
+# # Modules
+# # Data sources
+# # EC2
+# # IAM
+# # Autoscaling Group
+# # Launch Configuration 
+# # Listener Rule
+# # Security Group
+# # Security Group Rules
+# # Target group
+# # Variables
+# # Outputs 
+# ##########################
 
-resource "null_resource" "demo-atlantis"{}
+# resource "null_resource" "demo-atlantis"{}
 
-####################################################################
-##                       Data sources                             ##                      
-####################################################################
+# ####################################################################
+# ##                       Data sources                             ##                      
+# ####################################################################
 data "aws_iam_account_alias" "current" {
 }
-####################################################################
-##                           EC2                                  ##                      
-####################################################################
+# ####################################################################
+# ##                           EC2                                  ##                      
+# ####################################################################
 data "aws_iam_policy_document" "ec2_role_trust" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -43,23 +43,23 @@ data "aws_ami" "ec2" {
     name   = "virtualization-type"
     values = ["hvm"]
   }
-  owners = ["099720109477"]
+  owners = ["455015786856"]
 }
-####################################################################
-##                             IAM                                ##                      
-####################################################################
+# ####################################################################
+# ##                             IAM                                ##                      
+# ####################################################################
 resource "aws_iam_instance_profile" "instance_profile" {
   name = "${var.environment}-${var.service}"
   role = aws_iam_role.iam_role.name
 }
-# IAM Role
+# # IAM Role
 resource "aws_iam_role" "iam_role" {
   name               = "${var.environment}-${var.service}"
   assume_role_policy = data.aws_iam_policy_document.ec2_role_trust.json
 }
-####################################################################
-##                       Autoscaling Group                        ##                      
-####################################################################
+# ####################################################################
+# ##                       Autoscaling Group                        ##                      
+# ####################################################################
 resource "aws_autoscaling_group" "dev" {
   name                      = "${var.environment}-${var.service}-asg"
   max_size                  = var.max
@@ -70,7 +70,7 @@ resource "aws_autoscaling_group" "dev" {
   # EC2 instead of ELB, now load balancer only serves when ec2 is healthy
   force_delete         = true
   launch_configuration = aws_launch_configuration.dev.name
-  vpc_zone_identifier  = var.private_subnet_ids
+  vpc_zone_identifier  = [aws_subnet.main_subnet.id]
   target_group_arns    = [aws_lb_target_group.web_server.arn]
   lifecycle {
     create_before_destroy = true
@@ -127,10 +127,19 @@ resource "aws_lb_listener_rule" "external_forwarder_rule" {
 ####################################################################
 ##                                Security Group                  ##
 ####################################################################
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+}
+
+resource "aws_subnet" "main_subnet" {
+  vpc_id     = aws_vpc.main.id
+  cidr_block = "10.0.1.0/24"
+}
+
 
 resource "aws_security_group" "security_group" {
   name   = "${var.environment}-${var.service}-instance-sg"
-  vpc_id = var.vpc_id
+  vpc_id = aws_vpc.main.id
 
   tags = {
     Name = "${var.environment}-web-security-group"
@@ -149,7 +158,7 @@ resource "aws_security_group_rule" "external_port" {
   # security_group_id        = 
   to_port                  = 80
   type                     = "ingress"
-  source_security_group_id = var.external_lb_security_group_id
+  source_security_group_id = aws_security_group.security_group.id
 }
 # egress all
 resource "aws_security_group_rule" "egress_all" {
@@ -177,7 +186,7 @@ resource "aws_lb_target_group" "web_server" {
   name        = "${var.environment}-http"
   port        = 80
   protocol    = "HTTP"
-  vpc_id      = var.vpc_id
+  vpc_id      = aws_vpc.main.id
   target_type = "instance"
 
   tags = {
@@ -211,20 +220,20 @@ variable "instance_type" {
   description = "type of instance"
 }
 
-variable "vpc_id" {
-  type        = string
-  description = "ID of the VPC"
-}
+# variable "vpc_id" {
+#   type        = string
+#   description = "ID of the VPC"
+# }
 
-variable "private_subnet_ids" {
-  type        = list(string)
-  description = "ID of the private subnet"
-}
+# variable "private_subnet_ids" {
+#   type        = list(string)
+#   description = "ID of the private subnet"
+# }
 
-variable "public_subnet_ids" {
-  type        = list(string)
-  description = "ID of the subnet subnet"
-}
+# variable "public_subnet_ids" {
+#   type        = list(string)
+#   description = "ID of the subnet subnet"
+# }
 
 variable "max" {
   default     = 6
@@ -257,9 +266,9 @@ variable "kms_arn" {
 }
 
 
-variable "available_zones" {
-  type = list(string)
-}
+# variable "available_zones" {
+#   type = list(string)
+# }
 
 variable "acm_wildcard_arn" {
   type        = string
@@ -313,15 +322,15 @@ variable "external_lb_name" {
   default     = "medium-lb"
 }
 
-variable "external_lb_zone_id" {
-  type        = string
-  description = "Zone ID of external load balancer"
-}
+# variable "external_lb_zone_id" {
+#   type        = string
+#   description = "Zone ID of external load balancer"
+# }
 
-variable "external_lb_security_group_id" {
-  type        = string
-  description = "Security group of external load balancer"
-}
+# variable "external_lb_security_group_id" {
+#   type        = string
+#   description = "Security group of external load balancer"
+# }
 
 ####################################################################
 ##                          Output                                ##                                        
@@ -329,3 +338,8 @@ variable "external_lb_security_group_id" {
 output "asg_arn" {
   value = aws_autoscaling_group.dev.arn
 }
+
+# resource "aws_instance" "webserver" {
+#     ami = "ami-0b5eea76982371e91"
+#     instance_type = "t2.micro"
+# }
